@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clothes Weight Price Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+            background-color: #f4f4f4;
+            text-align: center;
+            position: relative;
+            overflow-x: hidden;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 3em; 
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        .input-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+        .input-container > div {
+            margin: 0 10px;
+        }
+        input {
+            padding: 10px;
+            width: 120px;
+            font-size: 16px;
+            border: 2px solid #007bff;
+            border-radius: 5px;
+            background-color: #fff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: border 0.3s;
+        }
+        input:focus {
+            border-color: #0056b3;
+            outline: none;
+        }
+        .button-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 15px;
+        }
+        button {
+            padding: 15px;
+            width: 140px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .result {
+            margin-top: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+        #history {
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            text-align: left;
+            max-width: 100%;
+            background-color: #fff;
+            border-radius: 5px;
+            padding: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .history-item {
+            background-color: #e9ecef;
+            margin: 5px;
+            padding: 10px;
+            border-radius: 5px;
+            flex: 0 1 300px;
+        }
+        .checkbox-container {
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+        .checkbox-container input {
+            margin-right: 5px;
+        }
+        #searchBar {
+            margin-bottom: 20px;
+            padding: 10px;
+            width: 300px;
+            border-radius: 5px;
+            border: 2px solid #007bff;
+        }
+
+        /* Artwork on the sides */
+        .side-art {
+            position: absolute;
+            top: 0;
+            height: 100vh;
+            width: 200px;
+            background: url('https://t4.ftcdn.net/jpg/05/34/86/35/360_F_534863554_yhFlDtPnNFFhjRQiyVBH3piwfyRHYAxe.jpg'), linear-gradient(45deg, #ffafbd, #ffc3a0);
+            opacity: 0.9;
+        }
+        .left-side-art {
+            left: 0;
+        }
+        .right-side-art {
+            right: 0;
+        }
+
+        /* Responsive artwork hiding for small screens */
+        @media (max-width: 768px) {
+            .side-art {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Side Artwork -->
+    <div class="side-art left-side-art"></div>
+    <div class="side-art right-side-art"></div>
+
+    <h1>Clothes Weight Price Calculator</h1>
+
+    <div class="input-container">
+        <div>
+            <label for="name">Name:</label>
+            <input type="text" id="name" placeholder="Your Name" />
+        </div>
+        <div>
+            <label for="phone">Phone Number:</label>
+            <input type="text" id="phone" placeholder="Your Phone" />
+        </div>
+        <div class="checkbox-container">
+            <input type="checkbox" id="isMember" />
+            <label for="isMember">Member</label>
+        </div>
+    </div>
+
+    <div class="input-container">
+        <div>
+            <label for="numClothes">Number of Clothes:</label>
+            <input type="number" id="numClothes" placeholder="Qty" />
+        </div>
+        <div>
+            <label for="totalWeight">Total Weight (kg):</label>
+            <input type="number" id="totalWeight" placeholder="Weight" />
+        </div>
+    </div>
+
+    <div class="input-container">
+        <div>
+            <label for="normalPricePerKg">Normal Price per kg:</label>
+            <input type="number" id="normalPricePerKg" placeholder="Normal Price" />
+        </div>
+        <div>
+            <label for="expressPricePerKg">Express Price per kg:</label>
+            <input type="number" id="expressPricePerKg" placeholder="Express Price" />
+        </div>
+        <div>
+            <label for="taxRate">Tax Rate (%):</label>
+            <input type="number" id="taxRate" placeholder="Tax Rate" />
+        </div>
+    </div>
+
+    <!-- Repositioned Buttons (side by side) -->
+    <div class="button-container">
+        <button onclick="calculateNormalPrice()">Normal Price</button>
+        <button onclick="calculateExpressPrice()">Express Price</button>
+    </div>
+
+    <div class="result" id="result"></div>
+
+    <h2>History</h2>
+    <input type="text" id="searchBar" placeholder="Search History" onkeyup="filterHistory()" />
+    <div id="history"></div>
+
+    <script>
+        let historyEntries = [];
+
+        window.onload = function() {
+            const savedHistory = localStorage.getItem('laundryHistory');
+            if (savedHistory) {
+                historyEntries = JSON.parse(savedHistory);
+                historyEntries.forEach((entry, index) => addToHistory(entry, index));
+            }
+        };
+
+        function calculateNormalPrice() {
+            const name = document.getElementById('name').value;
+            const phone = document.getElementById('phone').value;
+            const numClothes = parseInt(document.getElementById('numClothes').value);
+            const totalWeight = parseFloat(document.getElementById('totalWeight').value);
+            const normalPricePerKg = parseFloat(document.getElementById('normalPricePerKg').value);
+            const taxRate = parseFloat(document.getElementById('taxRate').value) || 0;
+            const isMember = document.getElementById('isMember').checked ? "Yes" : "No";
+
+            if (isNaN(numClothes) || isNaN(totalWeight) || isNaN(normalPricePerKg)) {
+                document.getElementById('result').innerText = "Please enter valid numbers.";
+                return;
+            }
+
+            const totalPrice = totalWeight * normalPricePerKg;
+            const taxAmount = totalPrice * (taxRate / 100);
+            const totalWithTax = totalPrice + taxAmount;
+            const timestamp = new Date().toLocaleString();
+            const completionTime = new Date(new Date().getTime() + 48 * 60 * 60 * 1000).toLocaleString();
+
+            document.getElementById('result').innerText = `Total Normal Price for ${numClothes} clothes: $${totalWithTax.toFixed(2)}, Done by: ${completionTime}`;
+            const historyEntry = `Normal Price | Name: ${name} | Phone: ${phone} | Member: ${isMember} | ${numClothes} clothes | $${totalWithTax.toFixed(2)} | Done by: ${completionTime} | ${timestamp}`;
+            historyEntries.push(historyEntry);
+            addToHistory(historyEntry, historyEntries.length - 1);
+            saveHistory();
+        }
+
+        function calculateExpressPrice() {
+            const name = document.getElementById('name').value;
+            const phone = document.getElementById('phone').value;
+            const numClothes = parseInt(document.getElementById('numClothes').value);
+            const totalWeight = parseFloat(document.getElementById('totalWeight').value);
+            const expressPricePerKg = parseFloat(document.getElementById('expressPricePerKg').value);
+            const taxRate = parseFloat(document.getElementById('taxRate').value) || 0;
+            const isMember = document.getElementById('isMember').checked ? "Yes" : "No";
+
+            if (isNaN(numClothes) || isNaN(totalWeight) || isNaN(expressPricePerKg)) {
+                document.getElementById('result').innerText = "Please enter valid numbers.";
+                return;
+            }
+
+            const totalPrice = totalWeight * expressPricePerKg;
+            const taxAmount = totalPrice * (taxRate / 100);
+            const totalWithTax = totalPrice + taxAmount;
+            const timestamp = new Date().toLocaleString();
+            const completionTime = new Date(new Date().getTime() + 5 * 60 * 60 * 1000).toLocaleString();
+
+            document.getElementById('result').innerText = `Total Express Price for ${numClothes} clothes: $${totalWithTax.toFixed(2)}, Done by: ${completionTime}`;
+            const historyEntry = `Express Price | Name: ${name} | Phone: ${phone} | Member: ${isMember} | ${numClothes} clothes | $${totalWithTax.toFixed(2)} | Done by: ${completionTime} | ${timestamp}`;
+            historyEntries.push(historyEntry);
+            addToHistory(historyEntry, historyEntries.length - 1);
+            saveHistory();
+        }
+
+        function addToHistory(entry, index) {
+            const historyDiv = document.getElementById('history');
+            const historyItem = document.createElement('div');
+            historyItem.className = 'history-item';
+
+            const deleteButton = document.createElement('button');
+            deleteButton.innerText = 'Delete';
+            deleteButton.style.marginLeft = '10px';
+            deleteButton.onclick = function() {
+                deleteHistoryEntry(index);
+            };
+
+            historyItem.innerText = entry;
+            historyItem.appendChild(deleteButton);
+            historyDiv.prepend(historyItem);
+        }
+
+        function saveHistory() {
+            localStorage.setItem('laundryHistory', JSON.stringify(historyEntries));
+        }
+
+        function deleteHistoryEntry(index) {
+            historyEntries.splice(index, 1);
+            saveHistory();
+            displayHistory();
+        }
+
+        function displayHistory() {
+            const historyDiv = document.getElementById('history');
+            historyDiv.innerHTML = '';
+            historyEntries.forEach((entry, index) => addToHistory(entry, index));
+        }
+
+        function filterHistory() {
+            const searchTerm = document.getElementById('searchBar').value.toLowerCase();
+            const historyDiv = document.getElementById('history');
+            historyDiv.innerHTML = '';
+
+            historyEntries.forEach((entry, index) => {
+                if (entry.toLowerCase().includes(searchTerm)) {
+                    addToHistory(entry, index);
+                }
+            });
+        }
+    </script>
+
+</body>
+</html>
